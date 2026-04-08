@@ -44,6 +44,32 @@ npm run build
 
 ## Configuração por IDE / Cliente MCP
 
+### Recomendado: `.mcp.json` na raiz do projeto
+
+A forma mais simples e portável de registrar o servidor é criar um arquivo `.mcp.json` na **raiz do projeto** onde você vai usar as ferramentas. Isso elimina a necessidade de alterar as configurações globais do VS Code, do Claude Desktop ou do Claude Code — basta o arquivo existir na pasta e o cliente MCP o detecta automaticamente.
+
+```json
+{
+  "mcpServers": {
+    "json-architect": {
+      "command": "node",
+      "args": ["C:/caminho/para/JSON-Architect-MCP/dist/index.js"]
+    }
+  }
+}
+```
+
+> **Por que usar `.mcp.json` no projeto?**
+> - Funciona em qualquer cliente MCP compatível (Claude Code, VS Code com extensão Claude, Cursor) sem configuração extra
+> - O registro fica versionado junto ao projeto — quem clonar o repositório já tem a configuração pronta
+> - Evita poluir as configurações globais da IDE ou do cliente Claude
+
+---
+
+### Alternativa: configuração global por IDE / Cliente MCP
+
+Use as opções abaixo apenas se preferir registrar o servidor globalmente, fora do projeto.
+
 ### Claude Code (CLI)
 
 Abra (ou crie) o arquivo `~/.claude/claude.json` e adicione o bloco `mcpServers`:
