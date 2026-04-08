@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { dispatch } from "./generators/index.js";
+import { analyzeContext } from "./generators/analyze-context.generator.js";
 import type { TargetIA, OutputFormat } from "./types.js";
 
 const server = new McpServer({
@@ -39,6 +40,38 @@ server.tool(
         },
       ],
     };
+  }
+);
+
+server.tool(
+  "analyze_context",
+  "Analyzes a natural language software context using Claude AI and returns a structured JSON with tasks, scopes, solutions, business logic and constraints.",
+  {
+    context: z
+      .string()
+      .min(10)
+      .describe(
+        "Natural language description of software problems, requirements, or feature requests (Portuguese or English)"
+      ),
+  },
+  async ({ context }) => {
+    try {
+      const result = await analyzeContext(server, { context });
+      return {
+        content: [
+          {
+            type: "text",
+            text: "```json\n" + JSON.stringify(result, null, 2) + "\n```",
+          },
+        ],
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        content: [{ type: "text", text: `Erro: ${message}` }],
+        isError: true,
+      };
+    }
   }
 );
 

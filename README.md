@@ -1,8 +1,13 @@
 # JSON-Architect-MCP
 
-Servidor MCP (Model Context Protocol) em Node.js/TypeScript que gera JSONs estruturados para diferentes ecossistemas de IA a partir de um contexto ou regras de negócio.
+Servidor MCP (Model Context Protocol) em Node.js/TypeScript que oferece duas ferramentas:
 
-## Plataformas suportadas
+1. **`generate_ai_json`** — Gera JSONs de configuração estáticos para diferentes ecossistemas de IA (Claude, Gemini, GPT, Course-LMS)
+2. **`analyze_context`** — Analisa um contexto em linguagem natural e retorna um JSON estruturado com tasks, regras de negócio e restrições (usa Claude API)
+
+---
+
+## Plataformas suportadas — `generate_ai_json`
 
 | Plataforma | O que gera |
 |---|---|
@@ -16,15 +21,17 @@ Servidor MCP (Model Context Protocol) em Node.js/TypeScript que gera JSONs estru
 ## Pré-requisitos
 
 - [Node.js](https://nodejs.org/) >= 18
-- [Claude Code](https://claude.ai/code) instalado
+- Uma das IDEs/clientes MCP suportados abaixo (Claude Code, Claude Desktop, VS Code com extensão Claude, Cursor)
+
+> **Sem chaves externas.** A ferramenta `analyze_context` usa **MCP Sampling** — solicita a inferência diretamente ao LLM do host (Claude Code, Claude Desktop, etc.) que já está autenticado. Nenhuma chave adicional é necessária.
 
 ---
 
 ## Instalação
 
 ```bash
-# 1. Entre na pasta do projeto
-cd mcp_gerajson_ia
+# 1. Clone ou baixe o projeto
+cd JSON-Architect-MCP
 
 # 2. Instale as dependências
 npm install
@@ -35,7 +42,9 @@ npm run build
 
 ---
 
-## Registrar no Claude Code
+## Configuração por IDE / Cliente MCP
+
+### Claude Code (CLI)
 
 Abra (ou crie) o arquivo `~/.claude/claude.json` e adicione o bloco `mcpServers`:
 
@@ -44,27 +53,91 @@ Abra (ou crie) o arquivo `~/.claude/claude.json` e adicione o bloco `mcpServers`
   "mcpServers": {
     "json-architect": {
       "command": "node",
-      "args": ["C:/SEU_USUARIO/JSON-Architect-MCP/dist/index.js"]
+      "args": ["C:/caminho/para/JSON-Architect-MCP/dist/index.js"]
     }
   }
 }
 ```
 
-Reinicie o Claude Code. A ferramenta `mcp__json-architect__generate_ai_json` estará disponível automaticamente.
+Reinicie o Claude Code. As ferramentas estarão disponíveis automaticamente como `mcp__json-architect__generate_ai_json` e `mcp__json-architect__analyze_context`.
 
 ---
 
-## Como usar
+### Visual Studio Code (Extensão Claude)
 
-Basta pedir ao Claude naturalmente:
+1. Instale a extensão **Claude** no VS Code (marketplace da Microsoft)
+2. Abra as configurações do VS Code (`Ctrl+,`) e pesquise por **MCP**
+3. Clique em **"Edit in settings.json"** e adicione:
 
-> "Gere um JSON de tool_config para o Claude para um sistema de suporte ao cliente"
+```json
+{
+  "claude.mcpServers": {
+    "json-architect": {
+      "command": "node",
+      "args": ["C:/caminho/para/JSON-Architect-MCP/dist/index.js"]
+    }
+  }
+}
+```
 
-> "Crie um JSON Gemini com system_prompt para análise de sentimentos"
+Alternativamente, crie o arquivo `.vscode/mcp.json` na raiz do seu workspace:
 
-> "Monte uma estrutura Course-LMS para um curso de React"
+```json
+{
+  "servers": {
+    "json-architect": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["C:/caminho/para/JSON-Architect-MCP/dist/index.js"]
+    }
+  }
+}
+```
 
-### Parâmetros da ferramenta
+---
+
+### Claude Desktop App
+
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "json-architect": {
+      "command": "node",
+      "args": ["C:/caminho/para/JSON-Architect-MCP/dist/index.js"]
+    }
+  }
+}
+```
+
+---
+
+### Cursor
+
+Abra `~/.cursor/mcp.json` (ou crie se não existir):
+
+```json
+{
+  "mcpServers": {
+    "json-architect": {
+      "command": "node",
+      "args": ["C:/caminho/para/JSON-Architect-MCP/dist/index.js"]
+    }
+  }
+}
+```
+
+---
+
+## Ferramentas disponíveis
+
+### 1. `generate_ai_json` — Gerador de configurações estáticas
+
+Gera JSONs prontos para uso nas APIs da plataforma escolhida.
+
+#### Parâmetros
 
 | Parâmetro | Obrigatório | Opções | Padrão |
 |---|---|---|---|
@@ -72,15 +145,74 @@ Basta pedir ao Claude naturalmente:
 | `context` | Sim | Texto livre com seu contexto ou regras de negócio | — |
 | `output_format` | Não | `tool_config`, `system_prompt`, `schema_only` | `tool_config` |
 
-### Descrição dos formatos de saída
+#### Formatos de saída
 
-- **`tool_config`** — JSON completo pronto para uso na API da plataforma escolhida
+- **`tool_config`** — JSON completo pronto para uso na API da plataforma
 - **`system_prompt`** — Apenas a configuração de system/instrução de sistema
-- **`schema_only`** — Apenas o JSON Schema da estrutura, sem configurações extras
+- **`schema_only`** — Apenas o JSON Schema da estrutura
+
+#### Exemplos de uso
+
+> "Gere um JSON de tool_config para o Claude para um sistema de suporte ao cliente"
+
+> "Crie um JSON Gemini com system_prompt para análise de sentimentos"
+
+> "Monte uma estrutura Course-LMS para um curso de React"
 
 ---
 
-## Exemplos de saída
+### 2. `analyze_context` — Análise inteligente de contexto
+
+Analisa uma descrição em linguagem natural (PT ou EN) e retorna um JSON estruturado com tasks identificadas, regras de negócio e restrições. Usa a Claude API internamente.
+
+#### Parâmetros
+
+| Parâmetro | Obrigatório | Descrição |
+|---|---|---|
+| `context` | Sim | Descrição em linguagem natural dos problemas ou requisitos de software |
+
+#### Estrutura do JSON retornado
+
+```json
+{
+  "project_context": "Título resumido da iniciativa",
+  "tasks": [
+    {
+      "scope": "Frontend | Backend | Database | DevOps | ...",
+      "issue": "Descrição do problema (tarefas de bug/fix)",
+      "solution": {
+        "action": "Ação a realizar",
+        "details": ["Passo 1", "Passo 2"]
+      },
+      "feature": "Nome da funcionalidade (tarefas de nova feature)",
+      "requirements": ["Requisito 1", "Requisito 2"],
+      "logic_rules": {
+        "regra_chave": "Descrição da regra"
+      }
+    }
+  ],
+  "business_logic": [
+    "Regra de negócio identificada no contexto"
+  ],
+  "constraints": {
+    "forbidden": ["O que NÃO pode ser feito"],
+    "mandatory": ["O que É obrigatório"]
+  },
+  "technical_implementation_hints": {
+    "database": "Sugestão de schema ou índices",
+    "controller_method": "Nome sugerido para o método",
+    "frontend_component": "Nome sugerido para o componente"
+  }
+}
+```
+
+#### Exemplo de uso
+
+> "Analise este contexto: Tenho um sistema de consulta de CPF onde o usuário consegue digitar texto no campo. Preciso criar um formulário de login e um controller que dispare emails sem duplicatas no mesmo dia."
+
+---
+
+## Exemplos de saída — `generate_ai_json`
 
 ### Claude — `tool_config`
 
@@ -164,7 +296,7 @@ Basta pedir ao Claude naturalmente:
     {
       "id": "module-1",
       "title": "Module 1: Fundamentos",
-      "lessons": [...]
+      "lessons": []
     }
   ],
   "seoMetadata": {
@@ -195,8 +327,11 @@ npm start
 # Listar ferramentas disponíveis
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | node dist/index.js
 
-# Chamar a ferramenta
+# Chamar generate_ai_json
 echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"generate_ai_json","arguments":{"target_ia":"Claude","context":"Sistema de agendamento de consultas","output_format":"tool_config"}}}' | node dist/index.js
+
+# Chamar analyze_context (requer ANTHROPIC_API_KEY)
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"analyze_context","arguments":{"context":"Campo de CPF permite texto. Preciso criar formulario de login e controller de email sem duplicatas."}}}' | ANTHROPIC_API_KEY=sk-ant-... node dist/index.js
 ```
 
 ---
@@ -204,23 +339,24 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"generate_a
 ## Estrutura do projeto
 
 ```
-mcp_gerajson_ia/
+JSON-Architect-MCP/
 ├── package.json
 ├── tsconfig.json
 ├── .gitignore
 ├── README.md
 └── src/
-    ├── index.ts                     <- Servidor MCP (entry point)
-    ├── types.ts                     <- Tipos compartilhados
+    ├── index.ts                          <- Servidor MCP (entry point)
+    ├── types.ts                          <- Tipos compartilhados
     └── generators/
-        ├── index.ts                 <- Registry + dispatch()
+        ├── index.ts                      <- Registry + dispatch()
+        ├── analyze-context.generator.ts  <- analyze_context (Claude API)
         ├── claude.generator.ts
         ├── gemini.generator.ts
         ├── gpt.generator.ts
         └── course-lms.generator.ts
 ```
 
-## Adicionando uma nova plataforma
+## Adicionando uma nova plataforma ao `generate_ai_json`
 
 1. Crie `src/generators/nova-ia.generator.ts` exportando `generateNovaIA()`
 2. Adicione a entrada no registry em `src/generators/index.ts`
