@@ -1,42 +1,42 @@
 import type { GeneratorInput, GeneratorResult } from "../types.js";
 
-export function generateClaude({ context, output_format }: GeneratorInput): GeneratorResult {
-  const toolName = slugify(context) || "generated_tool";
+export function generateClaude({ context, output_format, tasks }: GeneratorInput): GeneratorResult {
+  const items = tasks && tasks.length > 0 ? tasks : [context];
 
-  const inputSchema = {
+  const makeSchema = (description: string) => ({
     type: "object",
     properties: {
-      input: {
-        type: "string",
-        description: context,
-      },
+      input: { type: "string", description },
     },
     required: ["input"],
-  };
+  });
 
   let payload: unknown;
 
   switch (output_format) {
     case "schema_only":
-      payload = inputSchema;
+      payload = items.length === 1
+        ? makeSchema(items[0])
+        : items.map((task) => ({ name: slugify(task) || "task", schema: makeSchema(task) }));
       break;
 
     case "system_prompt":
       payload = {
-        system: `You are an assistant. Use the tool "${toolName}" when the user asks about: ${context}`,
+        system: items.length === 1
+          ? `You are an assistant. Use the tool "${slugify(items[0]) || "generated_tool"}" when the user asks about: ${items[0]}`
+          : `You are an assistant with ${items.length} specialized tools:\n` +
+            items.map((t, i) => `${i + 1}. ${slugify(t) || `task_${i + 1}`}: ${t}`).join("\n"),
       };
       break;
 
     case "tool_config":
     default:
       payload = {
-        tools: [
-          {
-            name: toolName,
-            description: context,
-            input_schema: inputSchema,
-          },
-        ],
+        tools: items.map((task) => ({
+          name: slugify(task) || "generated_tool",
+          description: task,
+          input_schema: makeSchema(task),
+        })),
         tool_choice: { type: "auto" },
       };
       break;

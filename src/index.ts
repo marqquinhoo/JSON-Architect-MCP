@@ -25,11 +25,16 @@ server.tool(
       .enum(["system_prompt", "tool_config", "schema_only"])
       .default("tool_config")
       .describe("Output shape: system_prompt | tool_config | schema_only"),
+    tasks: z
+      .array(z.string().min(1))
+      .optional()
+      .describe("List of individual task descriptions to generate a separate tool for each one"),
   },
-  async ({ target_ia, context, output_format }) => {
+  async ({ target_ia, context, output_format, tasks }) => {
     const markdown = dispatch(target_ia as TargetIA, {
       context,
       output_format: output_format as OutputFormat,
+      tasks,
     });
 
     return {

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "json-architect": {
+      "command": "node",
+      "args": ["C:/Users/marcos.paulo/Desktop/ProjetosDiversos/JSON-Architect-MCP/dist/index.js"]
+    }
+  }
+}

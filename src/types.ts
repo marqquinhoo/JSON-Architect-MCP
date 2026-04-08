@@ -4,6 +4,7 @@ export type OutputFormat = "system_prompt" | "tool_config" | "schema_only";
 export interface GeneratorInput {
   context: string;
   output_format: OutputFormat;
+  tasks?: string[];
 }
 
 export interface GeneratorResult {
