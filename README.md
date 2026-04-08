@@ -44,7 +44,7 @@ Abra (ou crie) o arquivo `~/.claude/claude.json` e adicione o bloco `mcpServers`
   "mcpServers": {
     "json-architect": {
       "command": "node",
-      "args": ["C:/Users/marcos.paulo/Desktop/ProjetosDiversos/mcp_gerajson_ia/dist/index.js"]
+      "args": ["C:/SEU_USUARIO/JSON-Architect-MCP/dist/index.js"]
     }
   }
 }
